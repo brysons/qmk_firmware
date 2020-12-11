@@ -7,6 +7,8 @@ extern keymap_config_t keymap_config;
 #define _FN2 2
 #define _FN3 3
 
+#define _ALT_TAB_TIMEOUT 800
+
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
   [_MAIN] = LAYOUT(
@@ -66,19 +68,32 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   )
 };
 
+bool is_alt_tab_active = false;
+uint16_t alt_tab_timer = 0;
+
 void encoder_update_user(uint8_t index, bool clockwise) {
     // Left hand encoder
     if (index == 0) {
-        // if (IS_LAYER_ON(_MAIN)) {
-        if (clockwise) {
-            tap_code16(LCTL(KC_RIGHT));
-        } else {
-            tap_code16(LCTL(KC_LEFT));
+        if (IS_LAYER_ON(_MAIN)) {
+            if (clockwise) {
+                tap_code16(LCTL(KC_RIGHT));
+            } else {
+                tap_code16(LCTL(KC_LEFT));
+            }
+        } else if (IS_LAYER_ON(_FN1)) {
+            if (!is_alt_tab_active) {
+                is_alt_tab_active = true;
+                register_code(KC_LGUI);
+            }
+            alt_tab_timer = timer_read();
+            if (clockwise) {
+                tap_code16(KC_TAB);
+            } else {
+                tap_code16(KC_GRAVE);
+            }
+//        } else if (IS_LAYER_ON(_FN2)) {
+//        } else if (IS_LAYER_ON(_FN3)) {
         }
-        // } else if (IS_LAYER_ON(_FN1)) {
-        // } else if (IS_LAYER_ON(_FN2)) {
-        // } else if (IS_LAYER_ON(_FN3)) {
-        // }
     }
     // Right hand encoder
     else if (index == 1) {
@@ -92,5 +107,14 @@ void encoder_update_user(uint8_t index, bool clockwise) {
         // } else if (IS_LAYER_ON(_FN2)) {
         // } else if (IS_LAYER_ON(_FN3)) {
         // }
+    }
+}
+
+void matrix_scan_user(void) {
+    if (is_alt_tab_active) {
+        if (timer_elapsed(alt_tab_timer) > _ALT_TAB_TIMEOUT) {
+            unregister_code(KC_LGUI);
+            is_alt_tab_active = false;
+        }
     }
 }
