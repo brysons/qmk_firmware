@@ -2,12 +2,12 @@
 
 extern keymap_config_t keymap_config;
 
+#define _ALT_TAB_TIMEOUT 1250
+
 #define _MAIN 0
 #define _FN1 1
 #define _FN2 2
 #define _FN3 3
-
-#define _ALT_TAB_TIMEOUT 800
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
